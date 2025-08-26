@@ -1,15 +1,16 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Reddit数据分析平台{% endblock %}</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         .navbar-brand {
             font-weight: bold;
         }
+
         .stats-card {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -17,10 +18,12 @@
             padding: 20px;
             margin-bottom: 20px;
         }
+
         .post-card {
             border-left: 4px solid #007bff;
             margin-bottom: 15px;
         }
+
         .score-badge {
             background-color: #28a745;
             color: white;
@@ -28,6 +31,7 @@
             padding: 5px 10px;
             font-size: 0.8rem;
         }
+
         .comment-badge {
             background-color: #17a2b8;
             color: white;
@@ -35,6 +39,7 @@
             padding: 5px 10px;
             font-size: 0.8rem;
         }
+
         .pattern-badge {
             background-color: #6f42c1;
             color: white;
@@ -42,6 +47,7 @@
             padding: 3px 8px;
             font-size: 0.7rem;
         }
+
         .truncate {
             display: -webkit-box;
             -webkit-line-clamp: 3;
@@ -50,38 +56,94 @@
         }
     </style>
 </head>
+
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container">
-            <a class="navbar-brand" href="/">
-                <i class="fab fa-reddit"></i> Reddit数据分析平台
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="/"><i class="fas fa-home"></i> 首页</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/posts"><i class="fas fa-list"></i> 帖子列表</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/analytics"><i class="fas fa-chart-bar"></i> 数据分析</a>
-                    </li>
-                </ul>
-                <form class="d-flex" action="/posts" method="GET">
-                    <input class="form-control me-2" type="search" name="q" placeholder="搜索帖子..." aria-label="Search">
-                    <button class="btn btn-outline-light" type="submit"><i class="fas fa-search"></i></button>
-                </form>
+
+    <!-- index.html -->
+    {% extends "base.html" %}
+
+    {% block title %}首页 - Reddit数据分析平台{% endblock %}
+
+    {% block content %}
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4"><i class="fas fa-tachometer-alt"></i> 数据概览</h1>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-3 col-sm-6">
+            <div class="stats-card text-center">
+                <i class="fas fa-file-alt fa-3x mb-3"></i>
+                <h3>{{ stats.total_posts }}</h3>
+                <p>总帖子数</p>
             </div>
         </div>
-    </nav>
+        <div class="col-md-3 col-sm-6">
+            <div class="stats-card text-center">
+                <i class="fas fa-comments fa-3x mb-3"></i>
+                <h3>{{ stats.total_comments }}</h3>
+                <p>总评论数</p>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="stats-card text-center">
+                <i class="fas fa-users fa-3x mb-3"></i>
+                <h3>{{ stats.total_subreddits }}</h3>
+                <p>子版块数</p>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="stats-card text-center">
+                <i class="fas fa-search fa-3x mb-3"></i>
+                <h3>{{ stats.total_patterns }}</h3>
+                <p>搜索模式</p>
+            </div>
+        </div>
+    </div>
 
-    <main class="container mt-4">
-        {% block content %}{% endblock %}
-    </main>
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-star"></i> 数据质量指标</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>平均帖子分数:</strong> <span class="badge bg-success">{{ stats.avg_score }}</span></p>
+                    <p><strong>最近7天新帖:</strong> <span class="badge bg-info">{{ stats.posts_last_week }}</span></p>
+                    <div class="mt-3">
+                        <a href="/posts" class="btn btn-primary">
+                            <i class="fas fa-list"></i> 查看所有帖子
+                        </a>
+                        <a href="/analytics" class="btn btn-secondary">
+                            <i class="fas fa-chart-line"></i> 数据分析
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-lightbulb"></i> SaaS机会洞察</h5>
+                </div>
+                <div class="card-body">
+                    <p>通过分析Reddit上的用户需求表达，我们可以发现:</p>
+                    <ul>
+                        <li>用户痛点和未满足的需求</li>
+                        <li>现有工具的不足之处</li>
+                        <li>新的SaaS产品机会</li>
+                        <li>市场验证的真实需求</li>
+                    </ul>
+                    <small class="text-muted">
+                        数据来源于搜索模式如"is there a tool"、"i wish there an app"等用户需求表达。
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endblock %}
+
 
     <footer class="bg-light text-center text-muted mt-5 py-3">
         <div class="container">
@@ -90,7 +152,8 @@
     </footer>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/chart.js/3.9.1/chart.min.js"></script>
+    
     {% block scripts %}{% endblock %}
 </body>
+
 </html>

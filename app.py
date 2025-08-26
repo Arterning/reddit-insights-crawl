@@ -101,7 +101,7 @@ def posts():
         
         conn.close()
 
-        print("debug", posts)
+        # print("debug", posts)
         
         return render_template('posts.html', 
                              posts=posts, 
