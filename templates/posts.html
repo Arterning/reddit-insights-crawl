@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block title %}帖子列表 - Reddit数据分析平台{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4"><i class="fas fa-list"></i> 帖子列表</h1>
+    </div>
+</div>
+
+<!-- 筛选器 -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET">
+            <div class="row">
+                <div class="col-md-3">
+                    <select class="form-select" name="subreddit">
+                        <option value="">所有子版块</option>
+                        {% for subreddit in subreddits %}
+                        <option value="{{ subreddit.subreddit }}" 
+                                {% if current_filters.subreddit == subreddit.subreddit %}selected{% endif %}>
+                            r/{{ subreddit.subreddit }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select" name="search_pattern">
+                        <option value="">所有搜索模式</option>
+                        {% for pattern in patterns %}
+                        <option value="{{ pattern.search_pattern }}"
+                                {% if current_filters.search_pattern == pattern.search_pattern %}selected{% endif %}>
+                            {{ pattern.search_pattern }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <input type="number" class="form-control" name="min_score" 
+                           placeholder="最低分数" value="{{ current_filters.min_score if current_filters.min_score > 0 }}">
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-filter"></i> 筛选
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 帖子列表 -->
+<div class="row">
+    <div class="col-12">
+        <p class="text-muted">共找到 {{ total_count }} 个帖子</p>
+        
+        {% for post in posts %}
+        <div class="card post-card">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-9">
+                        <h5 class="card-title">
+                            <a href="/post/{{ post.id }}" class="text-decoration-none">{{ post.title }}</a>
+                        </h5>
+                        <p class="card-text truncate">{{ post.content if post.content else '无内容' }}</p>
+                        <div class="mb-2">
+                            <span class="pattern-badge">{{ post.search_pattern }}</span>
+                            <small class="text-muted ms-2">
+                                r/{{ post.subreddit }} • {{ post.author }} • 
+                                {{ post.created_utc if post.created_utc else 'N/A' }}
+                            </small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 text-end">
+                        <div class="mb-2">
+                            <span class="score-badge">
+                                <i class="fas fa-arrow-up"></i> {{ post.score }}
+                            </span>
+                        </div>
+                        <div class="mb-2">
+                            <span class="comment-badge">
+                                <i class="fas fa-comment"></i> {{ post.num_comments }}
+                            </span>
+                        </div>
+                        <div>
+                            <a href="{{ post.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-external-link-alt"></i> Reddit
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        
+        {% if posts|length == 0 %}
+        <div class="text-center py-5">
+            <i class="fas fa-search fa-3x text-muted mb-3"></i>
+            <h4>没有找到匹配的帖子</h4>
+            <p class="text-muted">尝试调整筛选条件</p>
+        </div>
+        {% endif %}
+        
+        <!-- 分页 -->
+        {% if total_count > per_page %}
+        <nav aria-label="Page navigation" class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% set total_pages = (total_count + per_page - 1) // per_page %}
+                {% if page > 1 %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page - 1 }}&subreddit={{ current_filters.subreddit }}&search_pattern={{ current_filters.search_pattern }}&min_score={{ current_filters.min_score }}">上一页</a>
+                </li>
+                {% endif %}
+                
+                {% for p in range(1, total_pages + 1) %}
+                    {% if p == page %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ p }}</span>
+                    </li>
+                    {% elif p <= 3 or p >= total_pages - 2 or (p >= page - 2 and p <= page + 2) %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ p }}&subreddit={{ current_filters.subreddit }}&search_pattern={{ current_filters.search_pattern }}&min_score={{ current_filters.min_score }}">{{ p }}</a>
+                    </li>
+                    {% elif p == 4 or p == total_pages - 3 %}
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if page < total_pages %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page + 1 }}&subreddit={{ current_filters.subreddit }}&search_pattern={{ current_filters.search_pattern }}&min_score={{ current_filters.min_score }}">下一页</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

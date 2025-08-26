@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block title %}{{ post.title }} - Reddit数据分析平台{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">首页</a></li>
+                <li class="breadcrumb-item"><a href="/posts">帖子列表</a></li>
+                <li class="breadcrumb-item active">帖子详情</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h4>{{ post.title }}</h4>
+                        <div class="mt-2">
+                            <span class="pattern-badge">{{ post.search_pattern }}</span>
+                            <small class="text-muted ms-2">
+                                r/{{ post.subreddit }} • u/{{ post.author }} • 
+                                {{ post.created_utc if post.created_utc else 'N/A' }}
+                            </small>
+                        </div>
+                    </div>
+                    <div class="text-end">
+                        <div class="mb-2">
+                            <span class="score-badge">
+                                <i class="fas fa-arrow-up"></i> {{ post.score }}
+                            </span>
+                        </div>
+                        <div>
+                            <span class="comment-badge">
+                                <i class="fas fa-comment"></i> {{ post.num_comments }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if post.content %}
+                <div class="mb-4">
+                    <h6>帖子内容:</h6>
+                    <div class="border-start border-primary ps-3">
+                        {{ post.content|replace('\n', '<br>')|safe }}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="d-flex gap-2">
+                    <a href="{{ post.url }}" target="_blank" class="btn btn-primary">
+                        <i class="fas fa-external-link-alt"></i> 在Reddit查看
+                    </a>
+                    <button class="btn btn-outline-secondary" onclick="copyToClipboard('{{ post.url }}')">
+                        <i class="fas fa-copy"></i> 复制链接
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 评论区 -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5><i class="fas fa-comments"></i> 评论 ({{ comments|length }})</h5>
+            </div>
+            <div class="card-body">
+                {% if comments %}
+                {% for comment in comments %}
+                <div class="border-bottom pb-3 mb-3">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <strong>u/{{ comment.author }}</strong>
+                        <div>
+                            <span class="badge bg-secondary">{{ comment.score }} 分</span>
+                            <small class="text-muted ms-2">
+                                {{ comment.created_utc if comment.created_utc else 'N/A' }}
+                            </small>
+                        </div>
+                    </div>
+                    <p class="mb-0">{{ comment.body|replace('\n', '<br>')|safe }}</p>
+                </div>
+                {% endfor %}
+                {% else %}
+                <p class="text-muted text-center">暂无评论数据</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h6><i class="fas fa-info-circle"></i> 帖子信息</h6>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <tr>
+                        <td><strong>ID:</strong></td>
+                        <td>{{ post.id }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>子版块:</strong></td>
+                        <td>r/{{ post.subreddit }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>作者:</strong></td>
+                        <td>u/{{ post.author }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>分数:</strong></td>
+                        <td>{{ post.score }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>评论数:</strong></td>
+                        <td>{{ post.num_comments }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>点赞率:</strong></td>
+                        <td>{{ (post.upvote_ratio * 100)|round(1) }}%</td>
+                    </tr>
+                    <tr>
+                        <td><strong>创建时间:</strong></td>
+                        <td>{{ post.created_utc if post.created_utc else 'N/A' }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>域名:</strong></td>
+                        <td>{{ post.domain }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header">
+                <h6><i class="fas fa-lightbulb"></i> SaaS洞察</h6>
+            </div>
+            <div class="card-body">
+                <p><strong>搜索模式:</strong> "{{ post.search_pattern }}"</p>
+                <p class="text-muted small">
+                    这种表达通常表明用户有未满足的需求，可能存在SaaS产品机会。
+                    {% if post.score >= 10 and post.num_comments >= 5 %}
+                    <br><br><span class="text-success"><i class="fas fa-star"></i> 高质量帖子：高分数和讨论度表明这是一个值得关注的需求。</span>
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(function() {
+        alert('链接已复制到剪贴板！');
+    });
+}
+</script>
+{% endblock %}

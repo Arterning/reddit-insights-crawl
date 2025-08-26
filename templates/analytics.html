@@ -1,0 +1,235 @@
+{% extends "base.html" %}
+
+{% block title %}数据分析 - Reddit数据分析平台{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4"><i class="fas fa-chart-bar"></i> 数据分析</h1>
+    </div>
+</div>
+
+<!-- 子版块统计 -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-users"></i> 子版块统计</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="subredditChart" width="400" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-search"></i> 搜索模式统计</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="patternChart" width="400" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 时间趋势 -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-chart-line"></i> 30天发帖趋势</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="timeChart" width="800" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 详细统计表格 -->
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-table"></i> 子版块详细统计</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>子版块</th>
+                                <th>帖子数</th>
+                                <th>平均分数</th>
+                                <th>总评论数</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for stat in subreddit_stats %}
+                            <tr>
+                                <td>r/{{ stat.subreddit }}</td>
+                                <td>{{ stat.post_count }}</td>
+                                <td>{{ stat.avg_score|round(1) }}</td>
+                                <td>{{ stat.total_comments }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-table"></i> 搜索模式详细统计</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>搜索模式</th>
+                                <th>帖子数</th>
+                                <th>平均分数</th>
+                                <th>平均评论数</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for stat in pattern_stats %}
+                            <tr>
+                                <td><small>{{ stat.search_pattern }}</small></td>
+                                <td>{{ stat.post_count }}</td>
+                                <td>{{ stat.avg_score|round(1) }}</td>
+                                <td>{{ stat.avg_comments|round(1) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 高质量帖子 -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-star"></i> 高质量帖子 (分数≥10 且 评论≥5)</h5>
+            </div>
+            <div class="card-body">
+                {% for post in high_quality_posts %}
+                <div class="border-bottom pb-3 mb-3">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h6><a href="/post/{{ post.id }}">{{ post.title }}</a></h6>
+                            <small class="text-muted">
+                                r/{{ post.subreddit }} • {{ post.author }} • "{{ post.search_pattern }}"
+                            </small>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <span class="score-badge me-2">{{ post.score }} 分</span>
+                            <span class="comment-badge">{{ post.num_comments }} 评论</span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// 子版块饼图
+const subredditData = {
+    labels: [{% for stat in subreddit_stats[:10] %}'r/{{ stat.subreddit }}'{% if not loop.last %},{% endif %}{% endfor %}],
+    datasets: [{
+        data: [{% for stat in subreddit_stats[:10] %}{{ stat.post_count }}{% if not loop.last %},{% endif %}{% endfor %}],
+        backgroundColor: [
+            '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
+            '#FF9F40', '#FF6384', '#C9CBCF', '#4BC0C0', '#FF6384'
+        ]
+    }]
+};
+
+new Chart(document.getElementById('subredditChart'), {
+    type: 'doughnut',
+    data: subredditData,
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+
+// 搜索模式柱状图
+const patternData = {
+    labels: [{% for stat in pattern_stats[:8] %}'{{ stat.search_pattern[:20] }}...'{% if not loop.last %},{% endif %}{% endfor %}],
+    datasets: [{
+        label: '帖子数量',
+        data: [{% for stat in pattern_stats[:8] %}{{ stat.post_count }}{% if not loop.last %},{% endif %}{% endfor %}],
+        backgroundColor: 'rgba(54, 162, 235, 0.6)',
+        borderColor: 'rgba(54, 162, 235, 1)',
+        borderWidth: 1
+    }]
+};
+
+new Chart(document.getElementById('patternChart'), {
+    type: 'bar',
+    data: patternData,
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+        scales: {
+            x: {
+                ticks: {
+                    maxRotation: 45
+                }
+            }
+        }
+    }
+});
+
+// 时间趋势图
+const timeData = {
+    labels: [{% for stat in time_stats %}'{{ stat.date }}'{% if not loop.last %},{% endif %}{% endfor %}],
+    datasets: [{
+        label: '每日帖子数',
+        data: [{% for stat in time_stats %}{{ stat.post_count }}{% if not loop.last %},{% endif %}{% endfor %}],
+        borderColor: 'rgb(75, 192, 192)',
+        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+        tension: 0.1
+    }]
+};
+
+new Chart(document.getElementById('timeChart'), {
+    type: 'line',
+    data: timeData,
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+</script>
+{% endblock %}
