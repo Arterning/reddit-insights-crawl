@@ -299,7 +299,8 @@ def main():
     # HTTPS代理: "https://proxy_host:proxy_port" 
     # SOCKS5代理: "socks5://proxy_host:proxy_port"
     # 带认证: "http://username:password@proxy_host:proxy_port"
-    PROXY_URL = "http://127.0.0.1:7890"  # 设置为你的代理URL，或保持None不使用代理
+    # 设置为你的代理URL，或保持None不使用代理
+    PROXY_URL = os.getenv("PROXY_URL")
     
     # 初始化爬虫
     scraper = RedditScraper(CLIENT_ID, CLIENT_SECRET, USER_AGENT, PROXY_URL)
