@@ -48,6 +48,99 @@
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
+
+        /* Dark Theme Styles */
+        [data-theme="dark"] {
+            background-color: #0d1117;
+            color: #f0f6fc;
+        }
+
+        [data-theme="dark"] .navbar {
+            background-color: #161b22 !important;
+            border-bottom: 1px solid #30363d;
+        }
+
+        [data-theme="dark"] .bg-primary {
+            background-color: #161b22 !important;
+        }
+
+        [data-theme="dark"] .card {
+            background-color: #21262d;
+            border: 1px solid #30363d;
+            color: #f0f6fc;
+        }
+
+        [data-theme="dark"] .post-card {
+            background-color: #21262d;
+            border-left-color: #58a6ff;
+        }
+
+        [data-theme="dark"] .stats-card {
+            background: linear-gradient(135deg, #1f6feb 0%, #8b5cf6 100%);
+        }
+
+        [data-theme="dark"] .bg-light {
+            background-color: #21262d !important;
+            border-top: 1px solid #30363d;
+            color: #8b949e !important;
+        }
+
+        [data-theme="dark"] .text-muted {
+            color: #8b949e !important;
+        }
+
+        [data-theme="dark"] .form-control {
+            background-color: #0d1117;
+            border: 1px solid #30363d;
+            color: #f0f6fc;
+        }
+
+        [data-theme="dark"] .form-control:focus {
+            background-color: #0d1117;
+            border-color: #58a6ff;
+            color: #f0f6fc;
+            box-shadow: 0 0 0 0.2rem rgba(88, 166, 255, 0.25);
+        }
+
+        [data-theme="dark"] .btn-primary {
+            background-color: #238636;
+            border-color: #238636;
+        }
+
+        [data-theme="dark"] .btn-primary:hover {
+            background-color: #2ea043;
+            border-color: #2ea043;
+        }
+
+        [data-theme="dark"] .table {
+            color: #f0f6fc;
+        }
+
+        [data-theme="dark"] .table-striped > tbody > tr:nth-of-type(odd) > td,
+        [data-theme="dark"] .table-striped > tbody > tr:nth-of-type(odd) > th {
+            background-color: #161b22;
+        }
+
+        [data-theme="dark"] .border {
+            border-color: #30363d !important;
+        }
+
+        [data-theme="dark"] .text-primary {
+            color: #58a6ff !important;
+        }
+
+        [data-theme="dark"] .text-success {
+            color: #3fb950 !important;
+        }
+
+        [data-theme="dark"] .text-info {
+            color: #79c0ff !important;
+        }
+
+        /* Theme transition */
+        * {
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
     </style>
 </head>
 <body>
@@ -74,6 +167,9 @@
                         <a class="nav-link" href="/scrape"><i class="fas fa-download"></i> 爬取数据</a>
                     </li>
                 </ul>
+                <button id="theme-toggle" class="btn btn-outline-light me-2" title="切换主题">
+                    <i class="fas fa-moon" id="theme-icon"></i>
+                </button>
                 <form class="d-flex" action="/posts" method="GET">
                     <input class="form-control me-2" type="search" name="q" placeholder="搜索帖子..." aria-label="Search">
                     <button class="btn btn-outline-light" type="submit"><i class="fas fa-search"></i></button>
@@ -94,6 +190,42 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js" integrity="sha512-ElRFoEQdI5Ht6kZvyzXhYG9NqjtkmlkfYk0wr6wHxU9JEHakS7UJZNeml5ALk+8IKlU6jDgMabC3vkumRokgJA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <script>
+        // Theme Toggle Functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const themeToggle = document.getElementById('theme-toggle');
+            const themeIcon = document.getElementById('theme-icon');
+            const html = document.documentElement;
+
+            // Get saved theme or default to light
+            const savedTheme = localStorage.getItem('theme') || 'light';
+
+            // Apply saved theme
+            function applyTheme(theme) {
+                if (theme === 'dark') {
+                    html.setAttribute('data-theme', 'dark');
+                    themeIcon.className = 'fas fa-sun';
+                } else {
+                    html.setAttribute('data-theme', 'light');
+                    themeIcon.className = 'fas fa-moon';
+                }
+            }
+
+            // Initialize theme
+            applyTheme(savedTheme);
+
+            // Toggle theme
+            themeToggle.addEventListener('click', function() {
+                const currentTheme = html.getAttribute('data-theme') || 'light';
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+                applyTheme(newTheme);
+                localStorage.setItem('theme', newTheme);
+            });
+        });
+    </script>
+
     {% block scripts %}{% endblock %}
 </body>
 </html>
