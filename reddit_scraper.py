@@ -54,6 +54,11 @@ class RedditScraper:
             "i wish there was an app", 
             "i wish there an app",
             "how do you guys manage",
+            "How do you guys deal with",
+            "How do you guys get through",
+            "What's your experience with",
+            "What do you guys do when",
+            "Any tips on how you guys",
             "is there a better way to",
             "looking for a tool",
             "need an app for",
@@ -64,7 +69,13 @@ class RedditScraper:
             "what tools do you use",
             "struggling with",
             "pain point",
-            "frustrating that there's no"
+            "frustrating that there's no",
+            "Recommend me a product",
+            "Which product should I buy",
+            "What's the best product",
+            "Looking for recommendations [on/for]",
+            "Suggestions for [product]",
+            "What products should I use for [issue]",
         ]
     
     def search_posts(self, subreddit_names, limit=100, time_filter='month'):
