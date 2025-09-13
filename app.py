@@ -70,6 +70,7 @@ def posts():
         subreddit = request.args.get('subreddit', '')
         search_pattern = request.args.get('search_pattern', '')
         min_score = request.args.get('min_score', 0, type=int)
+        sort = request.args.get('sort', 'extracted_at_desc')
         
         # 构建查询
         query = 'SELECT * FROM posts WHERE 1=1'
@@ -87,8 +88,19 @@ def posts():
             query += ' AND score >= ?'
             params.append(min_score)
         
+        # 排序映射
+        sort_mapping = {
+            'extracted_at_desc': 'extracted_at DESC',
+            'extracted_at_asc': 'extracted_at ASC',
+            'created_utc_desc': 'created_utc DESC',
+            'created_utc_asc': 'created_utc ASC',
+            'score_desc': 'score DESC',
+            'score_asc': 'score ASC'
+        }
+
         # 排序和分页
-        query += ' ORDER BY score DESC LIMIT ? OFFSET ?'
+        sort_clause = sort_mapping.get(sort, 'extracted_at DESC')
+        query += f' ORDER BY {sort_clause} LIMIT ? OFFSET ?'
         params.extend([per_page, (page - 1) * per_page])
         
         posts = conn.execute(query, params).fetchall()
@@ -115,7 +127,8 @@ def posts():
                              current_filters={
                                  'subreddit': subreddit,
                                  'search_pattern': search_pattern,
-                                 'min_score': min_score
+                                 'min_score': min_score,
+                                 'sort': sort
                              })
     
     except Exception as e:
