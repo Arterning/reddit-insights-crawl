@@ -1,0 +1,263 @@
+{% extends "base.html" %}
+
+{% block title %}爬取数据 - Reddit数据分析平台{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-download"></i> Reddit数据爬取
+                </h3>
+            </div>
+            <div class="card-body">
+                <form id="scrapeForm" method="POST" action="/scrape">
+                    <div class="row">
+                        <!-- 子版块选择 -->
+                        <div class="col-md-6">
+                            <h5><i class="fas fa-users"></i> 选择子版块</h5>
+                            <div class="form-check-container" style="max-height: 300px; overflow-y: auto; border: 1px solid #dee2e6; padding: 10px; border-radius: 5px;">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="subreddits" value="entrepreneur" id="sub_entrepreneur" checked>
+                                    <label class="form-check-label" for="sub_entrepreneur">entrepreneur - 创业者社区</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="subreddits" value="startups" id="sub_startups" checked>
+                                    <label class="form-check-label" for="sub_startups">startups - 初创公司</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="subreddits" value="SaaS" id="sub_saas" checked>
+                                    <label class="form-check-label" for="sub_saas">SaaS - 软件即服务</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="subreddits" value="productivity" id="sub_productivity" checked>
+                                    <label class="form-check-label" for="sub_productivity">productivity - 生产力工具</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="subreddits" value="smallbusiness" id="sub_smallbusiness">
+                                    <label class="form-check-label" for="sub_smallbusiness">smallbusiness - 小企业</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="subreddits" value="webdev" id="sub_webdev">
+                                    <label class="form-check-label" for="sub_webdev">webdev - Web开发</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="subreddits" value="digitalnomad" id="sub_digitalnomad">
+                                    <label class="form-check-label" for="sub_digitalnomad">digitalnomad - 数字游牧者</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="subreddits" value="freelance" id="sub_freelance">
+                                    <label class="form-check-label" for="sub_freelance">freelance - 自由职业</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="subreddits" value="marketing" id="sub_marketing">
+                                    <label class="form-check-label" for="sub_marketing">marketing - 市场营销</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="subreddits" value="analytics" id="sub_analytics">
+                                    <label class="form-check-label" for="sub_analytics">analytics - 数据分析</label>
+                                </div>
+                            </div>
+                            <div class="mt-2">
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="selectAllSubreddits()">全选</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="deselectAllSubreddits()">全不选</button>
+                            </div>
+                        </div>
+
+                        <!-- 搜索模式选择 -->
+                        <div class="col-md-6">
+                            <h5><i class="fas fa-search"></i> 选择搜索关键词</h5>
+                            <div class="form-check-container" style="max-height: 300px; overflow-y: auto; border: 1px solid #dee2e6; padding: 10px; border-radius: 5px;">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="patterns" value="is there a tool" id="pat_tool" checked>
+                                    <label class="form-check-label" for="pat_tool">is there a tool</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="patterns" value="i wish there was an app" id="pat_wish_app" checked>
+                                    <label class="form-check-label" for="pat_wish_app">i wish there was an app</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="patterns" value="how do you guys manage" id="pat_manage">
+                                    <label class="form-check-label" for="pat_manage">how do you guys manage</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="patterns" value="is there a better way to" id="pat_better_way">
+                                    <label class="form-check-label" for="pat_better_way">is there a better way to</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="patterns" value="looking for a tool" id="pat_looking_tool" checked>
+                                    <label class="form-check-label" for="pat_looking_tool">looking for a tool</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="patterns" value="need an app for" id="pat_need_app">
+                                    <label class="form-check-label" for="pat_need_app">need an app for</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="patterns" value="wish someone would build" id="pat_wish_build">
+                                    <label class="form-check-label" for="pat_wish_build">wish someone would build</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="patterns" value="anyone know of a tool" id="pat_know_tool">
+                                    <label class="form-check-label" for="pat_know_tool">anyone know of a tool</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="patterns" value="what tools do you use" id="pat_tools_use">
+                                    <label class="form-check-label" for="pat_tools_use">what tools do you use</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="patterns" value="struggling with" id="pat_struggling">
+                                    <label class="form-check-label" for="pat_struggling">struggling with</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="patterns" value="pain point" id="pat_pain">
+                                    <label class="form-check-label" for="pat_pain">pain point</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="patterns" value="frustrating that there's no" id="pat_frustrating">
+                                    <label class="form-check-label" for="pat_frustrating">frustrating that there's no</label>
+                                </div>
+                            </div>
+                            <div class="mt-2">
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="selectAllPatterns()">全选</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="deselectAllPatterns()">全不选</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <!-- 爬取参数 -->
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="limit" class="form-label">每个关键词的结果数量</label>
+                                <select class="form-select" name="limit" id="limit">
+                                    <option value="20">20</option>
+                                    <option value="50" selected>50</option>
+                                    <option value="100">100</option>
+                                    <option value="200">200</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="time_filter" class="form-label">时间范围</label>
+                                <select class="form-select" name="time_filter" id="time_filter">
+                                    <option value="day">24小时</option>
+                                    <option value="week">一周</option>
+                                    <option value="month" selected>一个月</option>
+                                    <option value="year">一年</option>
+                                    <option value="all">所有时间</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="get_comments" class="form-label">获取评论</label>
+                                <select class="form-select" name="get_comments" id="get_comments">
+                                    <option value="true" selected>是</option>
+                                    <option value="false">否</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 提交按钮 -->
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-play"></i> 开始爬取
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 进度显示区域 -->
+<div class="row mt-4" id="progressArea" style="display: none;">
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-spinner fa-spin"></i> 爬取进度</h5>
+            </div>
+            <div class="card-body">
+                <div class="progress mb-3">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%" id="progressBar"></div>
+                </div>
+                <div id="statusText">准备开始...</div>
+                <div id="logOutput" class="mt-3" style="background-color: #f8f9fa; padding: 10px; border-radius: 5px; max-height: 300px; overflow-y: auto; font-family: monospace; font-size: 12px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function selectAllSubreddits() {
+    const checkboxes = document.querySelectorAll('input[name="subreddits"]');
+    checkboxes.forEach(checkbox => checkbox.checked = true);
+}
+
+function deselectAllSubreddits() {
+    const checkboxes = document.querySelectorAll('input[name="subreddits"]');
+    checkboxes.forEach(checkbox => checkbox.checked = false);
+}
+
+function selectAllPatterns() {
+    const checkboxes = document.querySelectorAll('input[name="patterns"]');
+    checkboxes.forEach(checkbox => checkbox.checked = true);
+}
+
+function deselectAllPatterns() {
+    const checkboxes = document.querySelectorAll('input[name="patterns"]');
+    checkboxes.forEach(checkbox => checkbox.checked = false);
+}
+
+document.getElementById('scrapeForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const formData = new FormData(this);
+    const subreddits = formData.getAll('subreddits');
+    const patterns = formData.getAll('patterns');
+
+    if (subreddits.length === 0) {
+        alert('请至少选择一个子版块！');
+        return;
+    }
+
+    if (patterns.length === 0) {
+        alert('请至少选择一个搜索关键词！');
+        return;
+    }
+
+    // 显示进度区域
+    document.getElementById('progressArea').style.display = 'block';
+    document.getElementById('statusText').textContent = '正在开始爬取...';
+
+    // 提交表单
+    fetch('/scrape', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('statusText').textContent = '爬取完成！';
+            document.getElementById('progressBar').style.width = '100%';
+            document.getElementById('logOutput').innerHTML += `<div class="text-success">✓ 爬取成功！找到 ${data.posts_count} 个帖子，${data.comments_count} 条评论</div>`;
+            document.getElementById('logOutput').innerHTML += `<div>数据已保存到: ${data.files.join(', ')}</div>`;
+        } else {
+            document.getElementById('statusText').textContent = '爬取失败！';
+            document.getElementById('logOutput').innerHTML += `<div class="text-danger">✗ 错误: ${data.error}</div>`;
+        }
+    })
+    .catch(error => {
+        document.getElementById('statusText').textContent = '请求失败！';
+        document.getElementById('logOutput').innerHTML += `<div class="text-danger">✗ 网络错误: ${error}</div>`;
+    });
+});
+</script>
+{% endblock %}

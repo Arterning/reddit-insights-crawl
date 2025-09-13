@@ -3,6 +3,8 @@ import sqlite3
 import pandas as pd
 from datetime import datetime, timedelta
 import json
+import os
+from reddit_scraper import RedditScraper
 
 app = Flask(__name__)
 
@@ -242,6 +244,91 @@ def api_search():
     
     except Exception as e:
         return jsonify({'error': str(e)})
+
+@app.route('/scrape', methods=['GET', 'POST'])
+def scrape():
+    """爬取数据页面"""
+    if request.method == 'GET':
+        return render_template('scrape.html')
+
+    if request.method == 'POST':
+        try:
+            # 获取表单数据
+            subreddits = request.form.getlist('subreddits')
+            patterns = request.form.getlist('patterns')
+            limit = int(request.form.get('limit', 50))
+            time_filter = request.form.get('time_filter', 'month')
+            get_comments = request.form.get('get_comments', 'false') == 'true'
+
+            # 验证参数
+            if not subreddits:
+                return jsonify({'success': False, 'error': '请至少选择一个子版块'})
+
+            if not patterns:
+                return jsonify({'success': False, 'error': '请至少选择一个搜索关键词'})
+
+            # 获取Reddit API配置
+            client_id = os.getenv("CLIENT_ID")
+            client_secret = os.getenv("CLIENT_SECRET")
+            proxy_url = os.getenv("PROXY_URL")
+
+            if not client_id or not client_secret:
+                return jsonify({
+                    'success': False,
+                    'error': '缺少Reddit API配置，请检查环境变量CLIENT_ID和CLIENT_SECRET'
+                })
+
+            # 初始化爬虫
+            scraper = RedditScraper(
+                client_id=client_id,
+                client_secret=client_secret,
+                user_agent="SaaSOpportunityFinder/1.0",
+                proxy_url=proxy_url
+            )
+
+            # 临时修改搜索模式，只使用用户选择的
+            original_patterns = scraper.search_patterns
+            scraper.search_patterns = patterns
+
+            # 开始爬取
+            posts = scraper.search_posts(
+                subreddit_names=subreddits,
+                limit=limit,
+                time_filter=time_filter
+            )
+
+            comments = []
+            if get_comments and posts:
+                # 获取前20个帖子的评论
+                post_ids = [post['id'] for post in posts[:20]]
+                comments = scraper.get_comments(post_ids, max_comments=30)
+
+            # 恢复原始搜索模式
+            scraper.search_patterns = original_patterns
+
+            # 保存数据
+            if posts:
+                posts_file, json_file = scraper.save_to_files(posts, comments)
+
+                return jsonify({
+                    'success': True,
+                    'posts_count': len(posts),
+                    'comments_count': len(comments),
+                    'files': [posts_file, json_file] if json_file else [posts_file]
+                })
+            else:
+                return jsonify({
+                    'success': False,
+                    'error': '未找到匹配的帖子，请尝试调整搜索条件'
+                })
+
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            return jsonify({
+                'success': False,
+                'error': f'爬取过程中发生错误: {str(e)}'
+            })
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
