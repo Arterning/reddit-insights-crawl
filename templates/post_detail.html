@@ -61,6 +61,9 @@
                     <button class="btn btn-outline-secondary" onclick="copyToClipboard('{{ post.url }}')">
                         <i class="fas fa-copy"></i> 复制链接
                     </button>
+                    <button id="favorite-btn" class="btn {% if is_favorited %}btn-warning{% else %}btn-outline-warning{% endif %}" onclick="toggleFavorite('{{ post.id }}')">
+                        <i class="fas fa-star"></i> {% if is_favorited %}已收藏{% else %}收藏{% endif %}
+                    </button>
                 </div>
             </div>
         </div>
@@ -159,6 +162,38 @@
 function copyToClipboard(text) {
     navigator.clipboard.writeText(text).then(function() {
         alert('链接已复制到剪贴板！');
+    });
+}
+
+function toggleFavorite(postId) {
+    const favoriteBtn = document.getElementById('favorite-btn');
+    
+    fetch('/api/favorite', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ post_id: postId }),
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            if (data.status === 'favorited') {
+                favoriteBtn.classList.remove('btn-outline-warning');
+                favoriteBtn.classList.add('btn-warning');
+                favoriteBtn.innerHTML = '<i class="fas fa-star"></i> 已收藏';
+            } else {
+                favoriteBtn.classList.remove('btn-warning');
+                favoriteBtn.classList.add('btn-outline-warning');
+                favoriteBtn.innerHTML = '<i class="fas fa-star"></i> 收藏';
+            }
+        } else {
+            alert('操作失败: ' + data.error);
+        }
+    })
+    .catch((error) => {
+        console.error('Error:', error);
+        alert('发生网络错误，请稍后再试。');
     });
 }
 </script>

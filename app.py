@@ -5,8 +5,10 @@ from datetime import datetime, timedelta
 import json
 import os
 from reddit_scraper import RedditScraper
+from favorites_api import favorites_api
 
 app = Flask(__name__)
+app.register_blueprint(favorites_api)
 
 # 数据库配置
 DB_PATH = "reddit_data/reddit_data.db"
@@ -154,9 +156,12 @@ def post_detail(post_id):
             (post_id,)
         ).fetchall()
         
+        # 检查帖子是否已收藏
+        is_favorited = conn.execute('SELECT post_id FROM favorites WHERE post_id = ?', (post_id,)).fetchone() is not None
+        
         conn.close()
         
-        return render_template('post_detail.html', post=post, comments=comments)
+        return render_template('post_detail.html', post=post, comments=comments, is_favorited=is_favorited)
     
     except Exception as e:
         return f"数据库错误: {e}"
