@@ -166,6 +166,43 @@ def post_detail(post_id):
     except Exception as e:
         return f"数据库错误: {e}"
 
+@app.route('/favorites')
+def favorites():
+    """收藏帖子列表页面"""
+    try:
+        conn = get_db_connection()
+        
+        # 分页参数
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 20, type=int)
+        
+        # 构建查询，通过JOIN获取收藏帖子的完整信息
+        query = '''
+            SELECT p.* FROM posts p
+            JOIN favorites f ON p.id = f.post_id
+            ORDER BY f.favorited_at DESC
+            LIMIT ? OFFSET ?
+        '''
+        params = [per_page, (page - 1) * per_page]
+        
+        posts = conn.execute(query, params).fetchall()
+        
+        # 获取总数用于分页
+        total_count = conn.execute('SELECT COUNT(*) FROM favorites').fetchone()[0]
+        
+        conn.close()
+        
+        return render_template('favorites.html', 
+                             posts=posts, 
+                             page=page,
+                             per_page=per_page,
+                             total_count=total_count)
+    
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return f"数据库错误: {str(e)}"
+
 @app.route('/analytics')
 def analytics():
     """数据分析页面"""
